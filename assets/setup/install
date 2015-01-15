@@ -9,24 +9,18 @@ SETUP_DIR="/app/setup"
 GEM_CACHE_DIR="${SETUP_DIR}/cache"
 
 # add git user
-adduser --disabled-login --gecos 'GitLab CI Runner' gitlab_ci_runner
+sudo useradd --shell /bin/nologin gitlab_ci_runner
+sudo chown gitlab_ci_runner /home/gitlab_ci_runner
 
 ln -s ${DATA_DIR}/.ssh /home/gitlab_ci_runner/.ssh
 
 # shallow clone gitlab-ci-runner
 sudo -u gitlab_ci_runner -H git clone -b v${GITLAB_CI_RUNNER_VERSION} --depth 1 \
-  https://github.com/gitlabhq/gitlab-ci-runner.git ${INSTALL_DIR}
+  https://github.com/kainino0x/gitlab-ci-runner.git ${INSTALL_DIR}
 
 cd ${INSTALL_DIR}
 
-# rebuild apt cache
-apt-get update
-
-# install build dependencies for gem installation
-apt-get install -y gcc g++ patch make \
-  libc6-dev ruby2.1-dev zlib1g-dev libyaml-dev libssl-dev \
-  libgdbm-dev libreadline-dev libncurses5-dev libffi-dev \
-  libxml2-dev libxslt-dev libcurl4-openssl-dev libicu-dev
+cat Gemfile.lock
 
 # install gems required by gitlab-ci-runner, use cache if available
 if [ -d "${GEM_CACHE_DIR}" ]; then
@@ -52,7 +46,7 @@ process_name=%(program_name)s_%(process_num)02d
 priority=20
 directory=${INSTALL_DIR}
 environment=HOME=/home/gitlab_ci_runner
-command=/usr/local/bin/bundle exec ./bin/runner
+command=bundle exec ./bin/runner
 user=gitlab_ci_runner
 autostart=true
 autorestart=true
